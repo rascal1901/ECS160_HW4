@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+
+//gcc -lm -g -Wall maxTweeter.c -o maxTweeter
+
 struct nameCount {
 
   char* name;
@@ -13,7 +16,7 @@ char* getfield(char* line, int num)//Code obtained from https://stackoverflow.co
 {
  
     char* tempLine = strdup(line);
-    printf("%s\n", tempLine);
+    //printf("%s\n", tempLine);
 
     char* tok = strtok(tempLine, ",");
 
@@ -68,6 +71,13 @@ int checkName(struct nameCount* arr, char* currName, int currSize) {
 
     printf("%s    %d\n", arr[i].name, i);
 
+
+
+    if(arr[i].name == NULL){
+      printf("Error: NULL value in array");
+      return -1;
+    }
+
     if(strcmp(arr[i].name, currName) == 0) {
 
       printf("Successful find of name\n");
@@ -81,12 +91,16 @@ int checkName(struct nameCount* arr, char* currName, int currSize) {
 
 }
 
+//max function - iterate through array
 
+//stacks?
+
+//stack 1 - number (pop: if num > some number, we push the greater number off, and put the smaller one on top
+
+//stack 2 - temp storage if one num is still larger than all numbers in stack 1 (pop until stack 1 is empty, then insert largest num and reinsert older ones)
 
 void main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
 
-  // if user enter correct input
-  if(argc == 2) {
 
     FILE* stream = fopen(argv[1], "r"); //Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
 
@@ -98,6 +112,22 @@ void main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
     char* currName;
     int currNameIndex = 0;
     int currSize = 0;
+
+
+
+  // if user enter correct input
+  if(argc == 2) {
+
+//    FILE* stream = fopen(argv[1], "r"); //Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
+
+    // Intialize variables
+//    int i = 0;
+//    int nameCol;
+//    char line[374];
+//    struct nameCount allNameCounts[20000];
+//    char* currName;
+//   int currNameIndex = 0;
+//    int currSize = 0;
 
     // Get first line
     fgets(line, 374, stream);
@@ -114,7 +144,7 @@ void main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
 
     printf("First Line: %s\n", line);
 
-    while (fgets(line, 374, stream) && i < 10)
+    while (fgets(line, 374, stream) && i < 100)
     {
             printf("Testing While Loop 1\n");
 
@@ -126,30 +156,38 @@ void main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
         printf("%s\n", currName);
 
         // If no entries, add first and continue to parse
+
+        currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
+
         if(currSize == 0) {
           //strcpy(allNameCounts[0].name, currName);
           allNameCounts[0].name = currName;
 	  allNameCounts[0].tweetCount = 1;
           currSize++;
           i++;
-          continue;
+          //continue;
+          printf("CurrSize is 0\n");
+
+          //currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
         }
 
         // Get index of current name in allNameCounts
-        currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
+        //currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
 //first entry name is NULL because not initialized yet
 
 
-        printf("Testing While Loop\n");
+        //printf("Testing While Loop\n");
         
-        if(checkName(allNameCounts, currName, currSize) >= 0) {
+        else if(currNameIndex >= 0) {
           allNameCounts[currNameIndex].tweetCount++;
         }//if the selected name, currName, already exists in the allNameCount array
         else {
           // store name and intialize count
-          currSize++;
+          //currSize++;
           allNameCounts[currSize].name = currName;
           allNameCounts[currSize].tweetCount = 1;
+          currSize++;
+
 
         }
         
@@ -162,6 +200,11 @@ void main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
   }
   else {
     printf("Invalid input. Usage: maxTweeter <FILENAME>\n");
+  }
+
+
+  for(int x = 0; x < 20; x++){
+    printf("Array Item %d: %s, %d \n", x, allNameCounts[x].name, allNameCounts[x].tweetCount);
   }
 
 }
