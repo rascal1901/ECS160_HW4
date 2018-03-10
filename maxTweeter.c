@@ -13,22 +13,19 @@ struct nameCount {
 
 char* getfield(char* line, int num)//Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
 {
- 
     char* tempLine = strdup(line);
     //printf("\n\nLine: %s\n", tempLine);
 
     char* tok = strtok(tempLine, ",");
-    printf("Line[0]: %s\n", tok);
+    //printf("Line[0]: %s\n", tok);
 
     if(num == 0)
       return tok;
 
     int i = 1;
     for(i = 1; i <=num; i++) {
-	    tok = strtok(NULL, ",");        //doesn't account for empty fields (may crash there)
-                                      //if field is empty, account for that; could be indexing into wrong thing
-                                      //write own strtok or use strsep-strtok but accounts for NULL fields
-      printf("Line[%d]: %s\n", i, tok);
+	    tok = strtok(NULL, ",");
+      //printf("Line[%d]: %s\n", i, tok);
     }
     //printf("%s\n", tok);
     return tok;
@@ -40,7 +37,6 @@ int getnamefield(char* line)
 {
     // Initialize temp line
     char* tok;
-
     char* tempLine = strdup(line);
 
     // Parse line by comma
@@ -49,9 +45,6 @@ int getnamefield(char* line)
 
     // Find "name" column number
     while(tok != NULL) {
-
-      //printf("%s\n", tok);
-
       if(strcmp(tok,"\"name\"") == 0) {//if we find the "name" column in the CSV file
         return col;//return col value to be used in main
       }
@@ -62,81 +55,81 @@ int getnamefield(char* line)
     return -1;
 }//Function to look for the column number that the "names" are in within the CSV file
 
-int checkName(struct nameCount* arr, char* currName, int currSize) {
 
-  printf("Entering checkName()\n");
+int checkName(struct nameCount* arr, char* currName, int currSize) {
 
   int i = 0;
 
-  // Loop through struct to find name, return 1 if found
+  // Loop through struct array to find name, return index in struct if found
   for(i = 0; i < currSize; i++) {
 
-    //printf("%s    %d\n", arr[i].name, i);
-
-    //printf("checkName() for loop entered\n");
-
     if(arr[i].name == NULL){               
-      printf("Error: NULL value in array");
       return -1;
-    }
+    } // If name is null
 
-    if(strcmp(arr[i].name, currName) == 0) {      // FIXME: Segfaults here because when tweet 736 is read in, currName is NULL
-      printf("Successful find of name\n");
+    if(strcmp(arr[i].name, currName) == 0) {
+      //printf("Successful find of name\n");
       return i;
-    }
+    } // If name is found
   }
-  // If name not found, return 0
 
-  printf("Unsuccessful find, return -1\n");
+  // If name not found, return -1
   return -1;
 
-}
+} // Function to get name of tweeter from line
 
 
 void sortTweeterArray(struct nameCount* arr, int currSize){
 
   //int x, y;
-  int tempTweetCount;
-  char* tempName;
+  int tempTweetCount;//stores temp value of smaller tweeter's tweet count
+  char* tempName;//stores temp value of smaller tweeter's name
 
-  for(int i = 0; i < currSize; i++) {
-    for(int j = (i + 1); j < currSize; j++) {
-      if(arr[i].tweetCount < arr[j].tweetCount) {
-        tempName = arr[i].name;
-        tempTweetCount = arr[i].tweetCount;
+  for(int i = 0; i < currSize; i++) {//outer for loop that checks array items from start to finish and indexes the current one with i
+    for(int j = (i + 1); j < currSize; j++) {//inner for loop that checks all array items following the one indexed by the first for loop
+      if(arr[i].tweetCount < arr[j].tweetCount) {//if the succeeding tweeter has a higher tweet count than the current one (i)
+        tempName = arr[i].name;//store current tweeter name in temp name string
+        tempTweetCount = arr[i].tweetCount;//store current tweeter TweetCount in a temp int variable
 
-        arr[i].name = arr[j].name;
-        arr[i].tweetCount = arr[j].tweetCount;
+        //switch values between array[i] and array[j]
+        arr[i].name = arr[j].name;//store larger tweeter's name at index i further up the top of the array 
+        arr[i].tweetCount = arr[j].tweetCount;//store larger tweeter's Tweet count at index i further up the top of the array
 
-        arr[j].name = tempName;
-        arr[j].tweetCount = tempTweetCount;
+        arr[j].name = tempName; //store smaller tweeter's name at index j 
+        arr[j].tweetCount = tempTweetCount;//store smaller tweeter's tweet count at index j of array
 
       }
-
     }
   }
-
-}
-
-
-
-
-
-
+} // Function to sort tweets in decreasing order; people with largest tweet counts are on top, people with smaller tweet counts are further down array
 
 int main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
 
-    FILE* stream = fopen(argv[1], "r"); //Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
+  // Make sure file is .csv file
+  char* filename = argv[1];
+  int len = strlen(filename);
+  const char *last_four = &filename[len-4];
+  if(strcmp(last_four, ".csv") != 0) {
+    printf("Invalid Input Format.\n");
+    return 1;
+  } // Source: https://stackoverflow.com/questions/5297248/how-to-compare-last-n-characters-of-a-string-to-another-string-in-c#5297278
 
-    // Intialize variables
-    int i = 0;
-    int nameCol;
-    char line[377];
-    struct nameCount allNameCounts[20000];//20000
-    char* currName;
-    int currNameIndex = 0;
-    int currSize = 0;
+  // Create file stream from input filename
+  FILE* stream = fopen(argv[1], "r"); //Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
 
+  if(stream == NULL) {
+    printf("Error: Unable to open file.\n");
+    return 1;
+  }
+
+  // Intialize variables
+  //int i = 0;
+  int nameCol;
+  char line[377];
+  struct nameCount allNameCounts[20000];//20000
+  char* currName;
+  int currNameIndex = 0;
+  int currSize = 0;
 
   // if user enter correct input
   if(argc == 2) {
@@ -144,105 +137,56 @@ int main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
     // Get first line
     fgets(line, 377, stream);
 
-    if(line != NULL) {
-      // Find column with "name" attribute
-      nameCol = getnamefield(line);
+    // Find column with "name" attribute
+    nameCol = getnamefield(line);
 
-      //printf("%d\n", nameCol);
-
-      // If no "name" attribute print error message
-      if(nameCol < 0) {
-        printf("Error: no nameCol in stream\n");
-        return 1;
-      }
-    }
-    else {
-      printf("Error: File empty");
+    // If no "name" attribute print error message
+    if(nameCol < 0) {
+      printf("Error: No \"name\" attribute found.\n");
       return 1;
     }
 
-    //printf("First Line: %s\n", line);
-
-    //while (fgets(line, 377, stream) && i < 20000)
-    //while (fgets(line, 377, stream))
+    // Until end of file
     while (!feof(stream))
     {
-            //printf("Testing While Loop 1\n");
       fgets(line, 377, stream);
-
-      printf("\nGetting Line %d", i);
-      printf("\n\nLine: %s\n", line); // When fgets reads in line 736, it only reads in "
-
 
       if(strcmp(line, "") == 0) {
         printf("Line is empty");
       }
 
         // Getting column of "name" attribute	
-	      currName = getfield(line, nameCol);//SEGFAULTS AT PRINT - RETURNING GARBAGE AT LINE 735 in CSV FILE (Logunov)
+	      currName = getfield(line, nameCol);
 
-        printf("currName: %s\n", currName);//SEFFAULTS HERE IF I < 750!!!!!
-
-        // If no entries, add first and continue to parse
-
-        currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
-                                                                     // Segfaults here because currName is NULL for tweet 736
-
-        printf("currNameIndex: %d\n", currNameIndex);
-        printf("Ugh\n");
+        // Get index of name in allNameCounts
+        currNameIndex = checkName(allNameCounts, currName, currSize);
 
         if(currSize == 0) {
-          printf("No tweeters have been added\n");
-          //strcpy(allNameCounts[0].name, currName);
           allNameCounts[0].name = currName;
 	        allNameCounts[0].tweetCount = 1;
           currSize++;
-          i++;
-          //continue;
-          //printf("CurrSize is 0\n");
-          printf("First Tweeter added\n");
-          //currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
         } // allNameCounts is empty, add currName
-
-        // Get index of current name in allNameCounts
-        //currNameIndex = checkName(allNameCounts, currName, currSize);//ERROR: SEGFAULTS AT THIS POINT ---- Need to figure out how to run if the array has not even been initialized yet
-        //first entry name is NULL because not initialized yet
-
-
-        //printf("Testing While Loop\n");
-        
         else if(currNameIndex >= 0) {
-          printf("Tweeter count about to be increased");
           allNameCounts[currNameIndex].tweetCount++;
-          printf("Tweeter count increased");
         }//if the selected name, currName, already exists in the allNameCount array
         else {
-          printf("Needs to add tweeter\n");
-          // store name and intialize count
-          //currSize++;
           allNameCounts[currSize].name = currName;
           allNameCounts[currSize].tweetCount = 1;
           currSize++;
-          printf("Tweeter added\n");
         }
-
-        // printf("Field 3 would be %s\n", getfield(tmp, 3);
-        //printf("%s \n", line);
-        // NOTE strtok clobbers tmp
-        i++;
     }//Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
 
   }
   else {
-    printf("Invalid file input.\n");
-  }
+    printf("Invalid Input Format.\n");
+  } // argc != 2
 
-  printf("\n\n\n\n\n");
-
+  // Sort array of tweeter and counts
   sortTweeterArray(allNameCounts, currSize);
 
+  // Print top ten
   for(int x = 0; x < 10; x++){
-    printf("Array Item %d: %s, %d \n", x, allNameCounts[x].name, allNameCounts[x].tweetCount);
+    printf("%s, %d \n", allNameCounts[x].name, allNameCounts[x].tweetCount);
   }
   
   return 0;
