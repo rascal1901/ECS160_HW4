@@ -1,1 +1,2 @@
-# ECS160_HW4
+# Sarah Quick
+# Kyle Catapusan
