@@ -4,6 +4,8 @@
 
 //gcc -lm -g -Wall maxTweeter.c -o maxTweeter
 
+
+
 struct nameCount {
 
   char* name;
@@ -103,7 +105,13 @@ void sortTweeterArray(struct nameCount* arr, int currSize){
   }
 } // Function to sort tweets in decreasing order; people with largest tweet counts are on top, people with smaller tweet counts are further down array
 
+
 int main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
+
+  if(argc != 2) {
+    printf("Invalid Input Format.\n");
+    return 1;
+  } // Check if valid number of command line inputs
 
   // Make sure file is .csv file
   char* filename = argv[1];
@@ -123,7 +131,7 @@ int main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
   }
 
   // Intialize variables
-  //int i = 0;
+  int lineCount = 0;
   int nameCol;
   char line[377];
   struct nameCount allNameCounts[20000];//20000
@@ -131,63 +139,84 @@ int main(int argc, char* argv[]) {//NOTE: Needs to be able to handle edge cases
   int currNameIndex = 0;
   int currSize = 0;
 
-  // if user enter correct input
-  if(argc == 2) {
+  // Get first line
+  fgets(line, 377, stream);
 
-    // Get first line
+  lineCount++;
+
+  if(strlen(line) > 377) {
+    printf("Error: Invalid line size found.\n");
+    return 1;
+  } // check length of first line
+
+  // Find column with "name" attribute
+  nameCol = getnamefield(line);
+
+  // If no "name" attribute print error message
+  if(nameCol < 0) {
+    printf("Error: No \"name\" attribute found.\n");
+    return 1;
+  }
+
+  // Until end of file
+  while (!feof(stream))
+  {
     fgets(line, 377, stream);
+    lineCount++;
 
-    // Find column with "name" attribute
-    nameCol = getnamefield(line);
-
-    // If no "name" attribute print error message
-    if(nameCol < 0) {
-      printf("Error: No \"name\" attribute found.\n");
+    if(lineCount > 20000) {
+      printf("Error: Too many lines in file.\n");
       return 1;
     }
 
-    // Until end of file
-    while (!feof(stream))
-    {
-      fgets(line, 377, stream);
+    if(strlen(line) > 377) {
+      printf("Error: Invalid line size found.\n");
+      return 1;
+    } // check length of line
 
-      if(strcmp(line, "") == 0) {
-        printf("Line is empty");
+    if(strcmp(line, "") == 0) {
+      printf("Line is empty");
+    }
+
+      // Getting column of "name" attribute	
+      currName = getfield(line, nameCol);
+
+      // Get index of name in allNameCounts
+      currNameIndex = checkName(allNameCounts, currName, currSize);
+
+      if(currSize == 0) {
+        allNameCounts[0].name = currName;
+        allNameCounts[0].tweetCount = 1;
+        currSize++;
+      } // allNameCounts is empty, add currName
+      else if(currNameIndex >= 0) {
+        allNameCounts[currNameIndex].tweetCount++;
+      }//if the selected name, currName, already exists in the allNameCount array
+      else {
+        allNameCounts[currSize].name = currName;
+        allNameCounts[currSize].tweetCount = 1;
+        currSize++;
       }
+  }//Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
 
-        // Getting column of "name" attribute	
-	      currName = getfield(line, nameCol);
 
-        // Get index of name in allNameCounts
-        currNameIndex = checkName(allNameCounts, currName, currSize);
-
-        if(currSize == 0) {
-          allNameCounts[0].name = currName;
-	        allNameCounts[0].tweetCount = 1;
-          currSize++;
-        } // allNameCounts is empty, add currName
-        else if(currNameIndex >= 0) {
-          allNameCounts[currNameIndex].tweetCount++;
-        }//if the selected name, currName, already exists in the allNameCount array
-        else {
-          allNameCounts[currSize].name = currName;
-          allNameCounts[currSize].tweetCount = 1;
-          currSize++;
-        }
-    }//Code obtained from https://stackoverflow.com/questions/12911299/read-csv-file-in-c
-
-  }
-  else {
-    printf("Invalid Input Format.\n");
-  } // argc != 2
 
   // Sort array of tweeter and counts
   sortTweeterArray(allNameCounts, currSize);
 
-  // Print top ten
-  for(int x = 0; x < 10; x++){
-    printf("%s, %d \n", allNameCounts[x].name, allNameCounts[x].tweetCount);
-  }
+  int x = 0;
+  if(currSize >= 10) {
+    // Print top ten
+    for(x = 0; x < 10; x++){
+      printf("%s, %d \n", allNameCounts[x].name, allNameCounts[x].tweetCount);
+    }
+  } // If at least 10 tweeters, print top 10
+  else {
+    // Print top ten
+    for(x = 0; x < currSize; x++){
+      printf("%s, %d \n", allNameCounts[x].name, allNameCounts[x].tweetCount);
+    }
+  } // If fewer than 10, print tweeters in order
   
   return 0;
 }
